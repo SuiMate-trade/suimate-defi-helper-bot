@@ -50,6 +50,7 @@
     "express": "^4.19.2",
     "firebase-admin": "^12.1.0",
     "jwt-decode": "^4.0.0",
+    "kriya-dex-sdk": "^1.1.69",
     "node-telegram-bot-api": "^0.65.1",
     "tslib": "~2.6"
   },

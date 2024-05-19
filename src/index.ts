@@ -10,6 +10,11 @@ import {
 import { verifyIfNewUser } from './helpers/verifyIfNewUser.js';
 import bot from './utils/bot.js';
 import { createNewAccount } from './helpers/handlePrivateKeyOnboarding.js';
+import {
+  handleStart,
+  handleUserAlreadyExists,
+} from './tgMessageHandlers/handleStart.js';
+import { handleOnboardUsingPrivateKey } from './tgMessageHandlers/handleCreateAccount.js';
 
 const app = express();
 app.use(cors());
@@ -53,7 +58,6 @@ bot.onText(/\/start/, async (msg) => {
   console.log('here');
   const chatId = msg.chat.id;
   const firstName = msg.from.first_name;
-  const userName = msg.from.username;
 
   console.log(chatId, firstName);
 
@@ -62,32 +66,7 @@ bot.onText(/\/start/, async (msg) => {
     `Hello ${firstName}! Welcome to Suimate DeFi Helper Bot!. Use this bot to do anything across any DeFi platform on Sui without going through their shit UX 😜`,
   );
 
-  const isNewUser = await verifyIfNewUser(`${chatId}-${userName}`);
-  if (isNewUser) {
-    await bot.sendMessage(
-      chatId,
-      `Seems like you don't have an account registered with Suimate.\n\nTo interact with the defi dapps, the bot will create a new wallet for you. To keep things self-custodial, we enforce zkLogin for creating a new wallet.\n\nThe bot will have MPC option to create a wallet too in the future`,
-    );
-
-    await bot.sendMessage(chatId, `Select an option to onboard.`, {
-      reply_markup: {
-        inline_keyboard: [
-          [
-            {
-              text: '🚀 Password protected private key',
-              callback_data: 'start_pk_onboarding',
-            },
-          ],
-          [
-            {
-              text: '🚀 Self custodial zkLogin',
-              callback_data: 'start_zklogin_onboarding',
-            },
-          ],
-        ],
-      },
-    });
-  }
+  await handleStart(chatId);
 });
 
 bot.on('callback_query', async (query) => {
@@ -117,24 +96,13 @@ bot.on('callback_query', async (query) => {
 
 bot.on('message', async (msg) => {
   const chatId = msg.chat.id;
+  const name = msg.from.first_name;
+  const username = msg.from.username;
 
   if (msg.reply_to_message) {
     if (msg.reply_to_message.text === 'Enter the password') {
       const password = msg.text;
-      await bot.sendMessage(
-        chatId,
-        `Creating a new account for you. Please wait...`,
-      );
-
-      const { address, publicKey, secretKey } = await createNewAccount(
-        password,
-        chatId,
-      );
-
-      await bot.sendMessage(
-        chatId,
-        `Your account has been created successfully! \n\nAddress: ${address}\nPublic Key: ${publicKey}\nPrivate Key: ${secretKey} \n\n Your private key has been encrypted with the password you provided. Make sure to remember the password to make transactions from the bot.`,
-      );
+      await handleOnboardUsingPrivateKey(chatId, password, name, username);
     }
   }
 });

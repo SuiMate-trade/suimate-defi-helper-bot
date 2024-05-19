@@ -2,7 +2,12 @@ import { Ed25519Keypair } from '@mysten/sui.js/keypairs/ed25519';
 import { db } from '../utils/firebase.js';
 import { encryptPrivateKey } from '../utils/securePrivateKey.js';
 
-export const createNewAccount = async (password: string, chatId: number) => {
+export const createNewAccount = async (
+  password: string,
+  chatId: number,
+  name: string,
+  username: string,
+) => {
   try {
     const keypair = new Ed25519Keypair();
     const publicKey = Buffer.from(
@@ -18,6 +23,8 @@ export const createNewAccount = async (password: string, chatId: number) => {
       publicKey,
       encryptedPrivateKey,
       address,
+      name,
+      username,
     });
 
     return {
