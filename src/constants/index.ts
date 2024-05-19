@@ -5,3 +5,5 @@ export const REDIRECT_URL = 'http://localhost:3005/verify';
 
 export const ENOKI_API_KEY = 'enoki_private_fa4a2722af44a9f12367790e5f930121';
 export const ENOKI_API_URL = 'https://api.enoki.mystenlabs.com/v1';
+
+export const SUI_DECIMALS = 9;

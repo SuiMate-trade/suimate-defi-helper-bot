@@ -7,14 +7,15 @@ import {
   getUserAddress,
   getZeroKnowledgeProof,
 } from './helpers/handleZkLogin.js';
-import { verifyIfNewUser } from './helpers/verifyIfNewUser.js';
 import bot from './utils/bot.js';
-import { createNewAccount } from './helpers/handlePrivateKeyOnboarding.js';
-import {
-  handleStart,
-  handleUserAlreadyExists,
-} from './tgMessageHandlers/handleStart.js';
+import { handleStart } from './tgMessageHandlers/handleStart.js';
 import { handleOnboardUsingPrivateKey } from './tgMessageHandlers/handleCreateAccount.js';
+import {
+  handleViewAccountBalances,
+  handleViewAddress,
+  handleViewPrivateKey,
+} from './tgMessageHandlers/handleViewUserData.js';
+import { promptForPassword } from './tgMessageHandlers/promptForPassword.js';
 
 const app = express();
 app.use(cors());
@@ -71,26 +72,39 @@ bot.onText(/\/start/, async (msg) => {
 
 bot.on('callback_query', async (query) => {
   const callbackData = query.data;
+  const chatId = query.message.chat.id;
 
   if (callbackData === 'start_zklogin_onboarding') {
-    const oauthUrl = await generateGoogleOauthUrl(query.message.chat.id);
+    const oauthUrl = await generateGoogleOauthUrl(chatId);
     await bot.sendMessage(
-      query.message.chat.id,
+      chatId,
       `Click on the link to start the onboarding process.\n\n${oauthUrl}`,
     );
   }
 
   if (callbackData === 'start_pk_onboarding') {
     await bot.sendMessage(
-      query.message.chat.id,
+      chatId,
       `Enter a password to protect your private key. The password will be used to encrypt your private key. Make sure to remember the password.`,
     );
 
-    await bot.sendMessage(query.message.chat.id, `Enter the password`, {
+    await bot.sendMessage(chatId, `Enter the password`, {
       reply_markup: {
         force_reply: true,
       },
     });
+  }
+
+  if (callbackData === 'view_address') {
+    await handleViewAddress(chatId);
+  }
+
+  if (callbackData === 'view_private_key') {
+    await promptForPassword(chatId, 'view your private key');
+  }
+
+  if (callbackData === 'view_balances') {
+    await handleViewAccountBalances(chatId);
   }
 });
 
@@ -103,6 +117,14 @@ bot.on('message', async (msg) => {
     if (msg.reply_to_message.text === 'Enter the password') {
       const password = msg.text;
       await handleOnboardUsingPrivateKey(chatId, password, name, username);
+    }
+
+    if (
+      msg.reply_to_message.text ===
+      'Please enter your password to view your private key'
+    ) {
+      const password = msg.text;
+      await handleViewPrivateKey(chatId, password);
     }
   }
 });

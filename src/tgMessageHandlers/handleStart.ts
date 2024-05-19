@@ -44,20 +44,36 @@ export const handleUserAlreadyExists = async (chatId: number) => {
   try {
     await bot.sendMessage(
       chatId,
-      `Welcome to Suimate! You can now interact with any DeFi dapp on Sui directly with this bot.\n\nSelect a dapp to interact with.`,
+      `Welcome to Suimate! You can now interact with any DeFi dapp on Sui directly with this bot.\n\nSelect any action you want to do and Suimate will guide you in the best way.`,
       {
         reply_markup: {
           inline_keyboard: [
             [
               {
-                text: 'KriyaDEX',
-                callback_data: 'view_kriyadex',
+                text: 'View Your Address',
+                callback_data: 'view_address',
+              },
+              {
+                text: 'View Your Private Key',
+                callback_data: 'view_private_key',
               },
             ],
             [
               {
-                text: 'More DEXs coming soon 🔜',
-                callback_data: 'coming_soon',
+                text: 'View Balances',
+                callback_data: 'view_balances',
+              },
+            ],
+            [
+              {
+                text: 'Swap',
+                callback_data: 'perform_swap',
+              },
+            ],
+            [
+              {
+                text: 'View Liquidity Pools',
+                callback_data: 'view_liquidity_pools',
               },
             ],
           ],
