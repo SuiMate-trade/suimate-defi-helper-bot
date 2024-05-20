@@ -36,3 +36,9 @@ export const toDecimalString = (
     return 0;
   }
 };
+
+export const toBigNumberFromDecimal = (balance: string, decimals: number) => {
+  return BigNumber(balance)
+    .multipliedBy(10 ** decimals)
+    .toString();
+};

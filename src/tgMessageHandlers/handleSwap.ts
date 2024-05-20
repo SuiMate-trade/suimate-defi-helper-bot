@@ -1,9 +1,11 @@
 import bot from '../utils/bot.js';
 import { getAddressForChatId } from '../utils/getAccountDataForChatId.js';
-import client from '../utils/sui.js';
+import client, { executeTransaction } from '../utils/sui.js';
 import { toDecimalString } from '../utils/parseBignum.js';
 import { db } from '../utils/firebase.js';
 import SuiCoinsList from '../constants/suiCoinsList.js';
+import aftermathSdk from '../utils/Aftermath/index.js';
+import { promptForPassword } from './promptForPassword.js';
 
 export const initiateSwap = async (chatId: number) => {
   try {
@@ -20,7 +22,7 @@ export const initiateSwap = async (chatId: number) => {
         });
 
         return {
-          text: `🔸 ${coinMetadata.name}. Balance: ${toDecimalString(balance.totalBalance, coinMetadata.decimals, 2)}`,
+          text: `🔸 ${coinMetadata.symbol}. Balance: ${toDecimalString(balance.totalBalance, coinMetadata.decimals, 2)}`,
           callback_data: `swap_input_${coinMetadata.symbol}`,
         };
       }),
@@ -187,6 +189,140 @@ export const handleSwapAmountEntered = async (
         },
       },
     );
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+export const handleSwapConfirm = async (chatId: number) => {
+  try {
+    const tempSwapRef = db
+      .collection('users')
+      .doc(chatId.toString())
+      .collection('tempSessions')
+      .doc('swap');
+
+    const swapData = await tempSwapRef.get();
+    const { coinFrom, coinTo, amount } = swapData.data();
+
+    if (!coinFrom || !coinTo || !amount) {
+      await bot.sendMessage(chatId, 'Please enter the swap details first');
+      return;
+    }
+
+    await bot.sendMessage(
+      chatId,
+      `Finding the best trade routes for swapping ${amount} ${coinFrom} for ${coinTo} ...`,
+    );
+
+    const aftermathRoute = await aftermathSdk.getSwapRoute(
+      coinFrom,
+      coinTo,
+      amount,
+    );
+
+    if (aftermathRoute) {
+      await bot.sendMessage(chatId, `Found the following routes:`, {
+        reply_markup: {
+          inline_keyboard: [
+            [
+              {
+                text: `Aftermath Route, Output: ${aftermathRoute.outputAmount} ${coinTo}`,
+                callback_data: 'confirm_perform_swap_aftermath',
+              },
+            ],
+          ],
+        },
+      });
+    }
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+export const handleConfirmSwapStart = async (
+  chatId: number,
+  routerId: string,
+) => {
+  try {
+    const tempSwapRef = db
+      .collection('users')
+      .doc(chatId.toString())
+      .collection('tempSessions')
+      .doc('swap');
+
+    await tempSwapRef.update({
+      routerId,
+    });
+
+    await promptForPassword(chatId, 'swap');
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+export const handlePasswordEnteredForSwap = async (
+  chatId: number,
+  password: string,
+) => {
+  try {
+    const tempSwapRef = db
+      .collection('users')
+      .doc(chatId.toString())
+      .collection('tempSessions')
+      .doc('swap');
+
+    const swapData = await tempSwapRef.get();
+    const { coinFrom, coinTo, amount, routerId } = swapData.data();
+
+    const address = await getAddressForChatId(chatId);
+
+    if (!coinFrom || !coinTo || !amount || !routerId) {
+      await bot.sendMessage(chatId, 'Please enter the swap details first');
+      return;
+    }
+
+    if (routerId === 'aftermath') {
+      await bot.sendMessage(
+        chatId,
+        `Swapping ${amount} ${coinFrom} for ${coinTo} using Aftermath Route ...`,
+      );
+
+      const aftermathRoute = await aftermathSdk.getSwapRoute(
+        coinFrom,
+        coinTo,
+        amount,
+      );
+
+      if (!aftermathRoute) {
+        await bot.sendMessage(chatId, 'No route found for the swap');
+        return;
+      }
+
+      const { coinIn, coinOut, spotPrice, routes, referrer, externalFee } =
+        aftermathRoute;
+      const txb = await aftermathSdk.performSwap(address, {
+        coinIn,
+        coinOut,
+        spotPrice,
+        routes,
+        referrer,
+        externalFee,
+      });
+
+      if (!txb) {
+        await bot.sendMessage(chatId, 'Something went wrong!');
+        return;
+      }
+
+      const txnResult = await executeTransaction(txb, chatId, password);
+
+      console.log('txnResult', txnResult);
+      await bot.sendMessage(
+        chatId,
+        `Transaction success. View on explorer here: https://suivision.xyz/txblock/${txnResult.digest}`,
+      );
+    }
   } catch (error) {
     console.error(error);
   }

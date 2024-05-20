@@ -17,12 +17,21 @@ import {
 } from './tgMessageHandlers/handleViewUserData.js';
 import { promptForPassword } from './tgMessageHandlers/promptForPassword.js';
 import {
+  handleConfirmSwapStart,
+  handlePasswordEnteredForSwap,
   handleSearchForSwapOutputCoin,
   handleSelectSwapOutputCoin,
   handleSwapAmountEntered,
+  handleSwapConfirm,
   handleSwapInputCoinSelected,
   initiateSwap,
 } from './tgMessageHandlers/handleSwap.js';
+import {
+  handlePasswordEnteredForLiquidStaking,
+  handleStakeAmountEntered,
+  handleValidatorNameSelected,
+  handleViewActiveValidators,
+} from './tgMessageHandlers/handleValidatorStaking.js';
 
 const app = express();
 app.use(cors());
@@ -127,6 +136,19 @@ bot.on('callback_query', async (query) => {
     const coinSymbol = callbackData.split('_')[2];
     await handleSelectSwapOutputCoin(chatId, coinSymbol);
   }
+
+  if (callbackData === 'swap_confirm') {
+    await handleSwapConfirm(chatId);
+  }
+
+  if (callbackData.startsWith('confirm_perform_swap_')) {
+    const routerId = callbackData.split('_')[3];
+    await handleConfirmSwapStart(chatId, routerId);
+  }
+
+  if (callbackData === 'view_validators') {
+    await handleViewActiveValidators(chatId);
+  }
 });
 
 bot.on('message', async (msg) => {
@@ -153,9 +175,43 @@ bot.on('message', async (msg) => {
       await handleSearchForSwapOutputCoin(chatId, searchQuery);
     }
 
-    if (msg.reply_to_message.text.includes('Enter the amount of')) {
+    if (
+      msg.reply_to_message.text.includes('Enter the amount of') &&
+      msg.reply_to_message.text.includes('you want to swap for')
+    ) {
       const inputAmount = msg.text;
       await handleSwapAmountEntered(chatId, inputAmount);
+    }
+
+    if (msg.reply_to_message.text === 'Please enter your password to swap') {
+      const password = msg.text;
+      await handlePasswordEnteredForSwap(chatId, password);
+    }
+
+    if (
+      msg.reply_to_message.text === 'Enter the name of the validator to stake'
+    ) {
+      const validatorName = msg.text;
+      await handleValidatorNameSelected(chatId, validatorName);
+    }
+
+    if (
+      msg.reply_to_message.text.startsWith(
+        'Enter the amount of SUI to stake to',
+      )
+    ) {
+      const validatorName = msg.reply_to_message.text
+        .split('Enter the amount of SUI to stake to')[1]
+        .trim();
+      const amount = msg.text;
+      await handleStakeAmountEntered(chatId, validatorName, amount);
+    }
+
+    if (
+      msg.reply_to_message.text === 'Please enter your password to liquid stake'
+    ) {
+      const password = msg.text;
+      await handlePasswordEnteredForLiquidStaking(chatId, password);
     }
   }
 });

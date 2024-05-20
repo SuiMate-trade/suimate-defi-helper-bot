@@ -72,6 +72,12 @@ export const handleUserAlreadyExists = async (chatId: number) => {
             ],
             [
               {
+                text: 'Validator Staking',
+                callback_data: 'view_validators',
+              },
+            ],
+            [
+              {
                 text: 'View Liquidity Pools',
                 callback_data: 'view_liquidity_pools',
               },
