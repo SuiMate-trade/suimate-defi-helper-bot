@@ -16,6 +16,13 @@ import {
   handleViewPrivateKey,
 } from './tgMessageHandlers/handleViewUserData.js';
 import { promptForPassword } from './tgMessageHandlers/promptForPassword.js';
+import {
+  handleSearchForSwapOutputCoin,
+  handleSelectSwapOutputCoin,
+  handleSwapAmountEntered,
+  handleSwapInputCoinSelected,
+  initiateSwap,
+} from './tgMessageHandlers/handleSwap.js';
 
 const app = express();
 app.use(cors());
@@ -106,6 +113,20 @@ bot.on('callback_query', async (query) => {
   if (callbackData === 'view_balances') {
     await handleViewAccountBalances(chatId);
   }
+
+  if (callbackData === 'perform_swap') {
+    await initiateSwap(chatId);
+  }
+
+  if (callbackData.startsWith('swap_input_')) {
+    const coinSymbol = callbackData.split('_')[2];
+    await handleSwapInputCoinSelected(chatId, coinSymbol);
+  }
+
+  if (callbackData.startsWith('swap_output_')) {
+    const coinSymbol = callbackData.split('_')[2];
+    await handleSelectSwapOutputCoin(chatId, coinSymbol);
+  }
 });
 
 bot.on('message', async (msg) => {
@@ -125,6 +146,16 @@ bot.on('message', async (msg) => {
     ) {
       const password = msg.text;
       await handleViewPrivateKey(chatId, password);
+    }
+
+    if (msg.reply_to_message.text === 'Enter the coin name or symbol') {
+      const searchQuery = msg.text;
+      await handleSearchForSwapOutputCoin(chatId, searchQuery);
+    }
+
+    if (msg.reply_to_message.text.includes('Enter the amount of')) {
+      const inputAmount = msg.text;
+      await handleSwapAmountEntered(chatId, inputAmount);
     }
   }
 });
