@@ -32,6 +32,10 @@ import {
   handleValidatorNameSelected,
   handleViewActiveValidators,
 } from './tgMessageHandlers/handleValidatorStaking.js';
+import {
+  handleProtocolNameSelected,
+  handleViewPoolsProtocols,
+} from './tgMessageHandlers/handleStakeInPool.js';
 
 const app = express();
 app.use(cors());
@@ -148,6 +152,21 @@ bot.on('callback_query', async (query) => {
 
   if (callbackData === 'view_validators') {
     await handleViewActiveValidators(chatId);
+  }
+
+  if (callbackData === 'view_liquidity_pools_protocols') {
+    await handleViewPoolsProtocols(chatId);
+  }
+
+  if (callbackData.startsWith('view_pools_in_')) {
+    const protocolName = callbackData.split('_')[3];
+    await handleProtocolNameSelected(chatId, protocolName);
+  }
+
+  if (callbackData.startsWith('stake_pool_in_')) {
+    const protocolName = callbackData.split('_')[3];
+    const poolName = callbackData.split('_')[4];
+    await handleValidatorNameSelected(chatId, poolName);
   }
 });
 

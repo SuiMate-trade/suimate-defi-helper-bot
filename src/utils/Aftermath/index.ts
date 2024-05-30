@@ -5,6 +5,8 @@ import {
   type ExternalFee,
   type RouterTradeCoin,
   type Staking,
+  type Pools,
+  type Pool,
 } from 'aftermath-ts-sdk';
 import {
   MY_ADDRESS,
@@ -19,6 +21,7 @@ class AftermathSdk {
   private afSdk: Aftermath;
   private router: Router;
   private staking: Staking;
+  private pools: Pools;
 
   constructor() {
     this.afSdk = new Aftermath('MAINNET');
@@ -29,6 +32,7 @@ class AftermathSdk {
     await this.afSdk.init();
     this.router = this.afSdk.Router();
     this.staking = this.afSdk.Staking();
+    this.pools = this.afSdk.Pools();
   }
 
   async getSwapRoute(
@@ -151,6 +155,39 @@ class AftermathSdk {
 
       tx.setSender(walletAddress);
       return tx;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  }
+
+  async getAllPools() {
+    try {
+      const allPools = await this.pools.getAllPools();
+      return allPools;
+    } catch (err) {
+      console.error(err);
+      return [];
+    }
+  }
+
+  async depositIntoPool(
+    pool: Pool,
+    walletAddress: string,
+    poolId: string,
+    amount: string,
+  ) {
+    try {
+      const tx = await pool.getDepositTransaction({
+        walletAddress,
+        amountsIn: {
+          '0x1..': 1_000_000_000n,
+        },
+        slippage: 0.01, // 1% max slippage
+
+        // optional
+        referrer: '0x..',
+      });
     } catch (err) {
       console.error(err);
       return null;

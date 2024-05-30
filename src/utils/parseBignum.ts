@@ -42,3 +42,16 @@ export const toBigNumberFromDecimal = (balance: string, decimals: number) => {
     .multipliedBy(10 ** decimals)
     .toString();
 };
+
+export const convertToInternationalCurrencySystem = (amount: number) => {
+  try {
+    const language = 'en';
+    // eslint-disable-next-line
+    return Intl.NumberFormat(language, {
+      notation: 'compact',
+      maximumFractionDigits: 3,
+    }).format(amount);
+  } catch (err) {
+    return amount;
+  }
+};

@@ -79,7 +79,7 @@ export const handleUserAlreadyExists = async (chatId: number) => {
             [
               {
                 text: 'View Liquidity Pools',
-                callback_data: 'view_liquidity_pools',
+                callback_data: 'view_liquidity_pools_protocols',
               },
             ],
           ],

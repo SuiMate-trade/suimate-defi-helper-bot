@@ -75,4 +75,17 @@ export const getValidatorsList = async () => {
   }
 };
 
+export const getCoinMetadata = async (coinType: string) => {
+  try {
+    const coinMetadata = await client.getCoinMetadata({
+      coinType,
+    });
+
+    return coinMetadata;
+  } catch (err) {
+    console.error(`Error in getCoinMetadata: ${err.message}`);
+    return null;
+  }
+};
+
 export default client;
