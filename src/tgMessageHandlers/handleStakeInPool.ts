@@ -1,4 +1,4 @@
-import aftermathSdk from '../utils/Aftermath/index.js';
+// import aftermathSdk from '../utils/Aftermath/index.js';
 import bot from '../utils/bot.js';
 import { db } from '../utils/firebase.js';
 import kriyaSdk from '../utils/KriyaDex/index.js';
@@ -34,7 +34,11 @@ export const handleProtocolNameSelected = async (
 ) => {
   try {
     if (protocolName === 'aftermath') {
-      await handleViewPoolsInAftermath(chatId);
+      // await handleViewPoolsInAftermath(chatId);
+      await bot.sendMessage(
+        chatId,
+        'This is currently under development. Please select another protocol.',
+      );
     }
 
     if (protocolName === 'kriya') {
@@ -108,20 +112,20 @@ export const handleKriyaPoolSelected = async (
   }
 };
 
-export const handleViewPoolsInAftermath = async (chatId: number) => {
-  try {
-    const pools = await aftermathSdk.getAllPools();
-    console.log(pools[0].pool.coins);
+// export const handleViewPoolsInAftermath = async (chatId: number) => {
+//   try {
+//     const pools = await aftermathSdk.getAllPools();
+//     console.log(pools[0].pool.coins);
 
-    const parsedData = [];
+//     const parsedData = [];
 
-    await Promise.all(
-      pools.map(async (pool) => {
-        const coins = pool.pool.coins;
-        const coinsTypeList = Object.keys(coins);
-      }),
-    );
-  } catch (error) {
-    console.error(error);
-  }
-};
+//     await Promise.all(
+//       pools.map(async (pool) => {
+//         const coins = pool.pool.coins;
+//         const coinsTypeList = Object.keys(coins);
+//       }),
+//     );
+//   } catch (error) {
+//     console.error(error);
+//   }
+// };

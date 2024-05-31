@@ -164,7 +164,7 @@ bot.on('callback_query', async (query) => {
   }
 
   if (callbackData.startsWith('stake_pool_in_')) {
-    const protocolName = callbackData.split('_')[3];
+    // const protocolName = callbackData.split('_')[3];
     const poolName = callbackData.split('_')[4];
     await handleValidatorNameSelected(chatId, poolName);
   }

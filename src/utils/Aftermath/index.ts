@@ -81,6 +81,7 @@ class AftermathSdk {
         amountIn,
         retryCount + 1,
       );
+      return null;
     }
   }
 
@@ -174,11 +175,11 @@ class AftermathSdk {
   async depositIntoPool(
     pool: Pool,
     walletAddress: string,
-    poolId: string,
-    amount: string,
+    // poolId: string,
+    // amount: string,
   ) {
     try {
-      const tx = await pool.getDepositTransaction({
+      await pool.getDepositTransaction({
         walletAddress,
         amountsIn: {
           '0x1..': 1_000_000_000n,

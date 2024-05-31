@@ -7,7 +7,9 @@ export const toDecimalValue = (balance: number, decimals: number) => {
 };
 
 export const toDecimalBigNumberValue = (balance: string, decimals: number) => {
+  //@ts-ignore
   const bnDecimals = BigNumber(10).exponentiatedBy(decimals);
+  //@ts-ignore
   return BigNumber(balance).dividedBy(bnDecimals).toNumber();
 };
 
@@ -25,6 +27,7 @@ export const toDecimalString = (
     // if (!/^\d+$/.test(balance)) return NaN;
 
     // Return the final value
+    //@ts-ignore
     return toDecimalBigNumberValue(BigNumber(balance), decimals).toLocaleString(
       'en-US',
       {
@@ -38,6 +41,7 @@ export const toDecimalString = (
 };
 
 export const toBigNumberFromDecimal = (balance: string, decimals: number) => {
+  //@ts-ignore
   return BigNumber(balance)
     .multipliedBy(10 ** decimals)
     .toString();

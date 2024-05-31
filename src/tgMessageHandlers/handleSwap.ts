@@ -315,6 +315,7 @@ export const handlePasswordEnteredForSwap = async (
         return;
       }
 
+      // @ts-ignore
       const txnResult = await executeTransaction(txb, chatId, password);
 
       console.log('txnResult', txnResult);

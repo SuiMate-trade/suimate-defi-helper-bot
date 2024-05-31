@@ -122,6 +122,7 @@ export const handlePasswordEnteredForLiquidStaking = async (
       return;
     }
 
+    //@ts-ignore
     const txnResult = await executeTransaction(txb, chatId, password);
 
     if (!txnResult) {
